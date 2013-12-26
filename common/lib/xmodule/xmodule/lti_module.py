@@ -55,6 +55,7 @@ from xmodule.course_module import CourseDescriptor
 from pkg_resources import resource_string
 from xblock.core import String, Scope, List, XBlock
 from xblock.fields import Boolean, Float
+from courseware.access import has_access
 
 
 log = logging.getLogger(__name__)
@@ -328,6 +329,11 @@ class LTIModule(LTIFields, XModule):
         """
         return u':'.join(urllib.quote(i) for i in (self.lti_id, self.get_resource_link_id(), self.get_user_id()))
 
+    def get_course(self):
+        course_id = self.course_id
+        course_location = CourseDescriptor.id_to_location(course_id)
+        course = self.descriptor.runtime.modulestore.get_item(course_location)
+        return course
 
     def oauth_params(self, custom_parameters, client_key, client_secret):
         """
@@ -343,6 +349,18 @@ class LTIModule(LTIFields, XModule):
             client_key=unicode(client_key),
             client_secret=unicode(client_secret)
         )
+        course = self.get_course()
+        try:
+            user = self.system.get_real_user(self.get_user_id())
+        except TypeError:
+            user = u''
+
+        if has_access(user, course, 'instructor'):
+            roles = u'Instructor'
+        elif has_access(user, course, 'staff'):
+            roles = u'Administrator'
+        else:
+            roles = u'Student'
 
         # Must have parameters for correct signing from LTI:
         body = {
@@ -351,7 +369,7 @@ class LTIModule(LTIFields, XModule):
             u'launch_presentation_return_url': '',
             u'lti_message_type': u'basic-lti-launch-request',
             u'lti_version': 'LTI-1p0',
-            u'role': u'student',
+            u'roles': roles,
 
             # Parameters required for grading:
             u'resource_link_id': self.get_resource_link_id(),
@@ -607,10 +625,7 @@ oauth_consumer_key="", oauth_signature="frVp4JuvT1mVXlxktiAUjQ7%2F1cw%3D"'}
         """
         Obtains client_key and client_secret credentials from current course.
         """
-        course_id = self.course_id
-        course_location = CourseDescriptor.id_to_location(course_id)
-        course = self.descriptor.runtime.modulestore.get_item(course_location)
-
+        course = self.get_course()
         for lti_passport in course.lti_passports:
             try:
                 lti_id, key, secret = [i.strip() for i in lti_passport.split(':')]
