@@ -3,7 +3,7 @@
 <%namespace name='static' file='static_content.html'/>
 
 <%! from django.core.urlresolvers import reverse %>
-<%! from django.utils.translation import ugettext as _ %>
+<%! from django.utils.translation import gettext as _ %>
 
 <%block name="title"><title>${_("Log into your {platform_name} Account").format(platform_name=settings.PLATFORM_NAME)}</title></%block>
 
@@ -83,7 +83,7 @@
         $submitButton.
           removeClass('is-disabled').
           removeProp('disabled').
-          text("${_('Log into My {platform_name} Account').format(platform_name=settings.PLATFORM_NAME)} <span class='orn-plus'>+</span> ${_('Access My Courses')}");
+          html("${_('Log into My {platform_name} Account').format(platform_name=settings.PLATFORM_NAME)} <span class='orn-plus'>+</span> ${_('Access My Courses')}");
       }
       else {
         $submitButton.
