@@ -83,13 +83,13 @@
         $submitButton.
           removeClass('is-disabled').
           removeProp('disabled').
-          html("${_('Log into My {platform_name} Account').format(platform_name=settings.PLATFORM_NAME)} <span class='orn-plus'>+</span> ${_('Access My Courses')}");
+          text("${_('Log into My {platform_name} Account').format(platform_name=settings.PLATFORM_NAME)} <span class='orn-plus'>+</span> ${_('Access My Courses')}");
       }
       else {
         $submitButton.
           addClass('is-disabled').
           prop('disabled', true).
-          html(gettext('Processing your account information &hellip;'));
+          text("${_('Processing your account information …')}");
       }
     }
   </script>
