@@ -34,25 +34,25 @@ def list_with_level(course, level):
     return ROLES[level](course.location).users_with_role()
 
 
-def allow_access(course, user, level):
+def allow_access(requestor, course, user, level):
     """
     Allow user access to course modification.
 
     `level` is one of ['instructor', 'staff', 'beta']
     """
-    _change_access(course, user, level, 'allow')
+    _change_access(requestor, course, user, level, 'allow')
 
 
-def revoke_access(course, user, level):
+def revoke_access(requestor, course, user, level):
     """
     Revoke access from user to course modification.
 
     `level` is one of ['instructor', 'staff', 'beta']
     """
-    _change_access(course, user, level, 'revoke')
+    _change_access(requestor, course, user, level, 'revoke')
 
 
-def _change_access(course, user, level, action):
+def _change_access(requestor, course, user, level, action):
     """
     Change access of user.
 
@@ -68,9 +68,9 @@ def _change_access(course, user, level, action):
         raise ValueError("unrecognized level '{}'".format(level))
 
     if action == 'allow':
-        role.add_users(user)
+        role.add_users(requestor, user)
     elif action == 'revoke':
-        role.remove_users(user)
+        role.remove_users(requestor, user)
     else:
         raise ValueError("unrecognized action '{}'".format(action))
 

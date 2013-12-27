@@ -21,7 +21,7 @@ from courseware.tests.tests import TEST_DATA_MONGO_MODULESTORE
 from dashboard.models import CourseImportLog
 from dashboard.sysadmin import Users
 from external_auth.models import ExternalAuthMap
-from student.tests.factories import UserFactory
+from student.tests.factories import UserFactory, AdminFactory
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.xml import XMLModuleStore
@@ -55,6 +55,7 @@ class SysadminBaseTestCase(ModuleStoreTestCase):
     def setUp(self):
         """Setup test case by adding primary user."""
         super(SysadminBaseTestCase, self).setUp()
+        self.global_admin = AdminFactory()
         self.user = UserFactory.create(username='test_user',
                                        email='test_user+sysadmin@edx.org',
                                        password='foo')
@@ -62,7 +63,7 @@ class SysadminBaseTestCase(ModuleStoreTestCase):
 
     def _setstaff_login(self):
         """Makes the test user staff and logs them in"""
-        GlobalStaff().add_users(self.user)
+        GlobalStaff().add_users(self.global_admin, self.user)
         self.client.login(username=self.user.username, password='foo')
 
     def _add_edx4edx(self):
@@ -197,7 +198,7 @@ class TestSysadmin(SysadminBaseTestCase):
             username='test_cuser+sysadmin@edx.org',
             email='test_cuser+sysadmin@edx.org')))
 
-        self.assertEqual(1, len(User.objects.all()))
+        self.assertEqual(2, len(User.objects.all()))
 
     def test_user_csv(self):
         """Download and validate user CSV"""
@@ -334,7 +335,7 @@ class TestSysadmin(SysadminBaseTestCase):
 
         def_ms = modulestore()
         course = def_ms.get_course('MITx/edx4edx/edx4edx')
-        CourseStaffRole(course.location).add_users(self.user)
+        CourseStaffRole(course.location).add_users(self.global_admin, self.user)
 
         response = self.client.post(reverse('sysadmin_staffing'),
                                     {'action': 'get_staff_csv', })
@@ -490,7 +491,7 @@ class TestSysAdminMongoCourseImport(SysadminBaseTestCase):
         # Add user as staff in course team
         def_ms = modulestore()
         course = def_ms.get_course('MITx/edx4edx/edx4edx')
-        CourseStaffRole(course.location).add_users(self.user)
+        CourseStaffRole(course.location).add_users(self.global_admin, self.user)
 
         self.assertTrue(CourseStaffRole(course.location).has_user(self.user))
         logged_in = self.client.login(username=self.user.username,

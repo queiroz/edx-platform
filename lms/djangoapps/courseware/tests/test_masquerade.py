@@ -20,6 +20,7 @@ from student.roles import CourseStaffRole
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.django import modulestore, clear_existing_modulestores
 from lms.lib.xblock.runtime import quote_slashes
+from student.tests.factories import AdminFactory
 
 
 @override_settings(MODULESTORE=TEST_DATA_MIXED_MODULESTORE)
@@ -40,9 +41,10 @@ class TestStaffMasqueradeAsStudent(ModuleStoreTestCase, LoginEnrollmentTestCase)
         self.password = 'foo'
         self.create_account('u2', self.instructor, self.password)
         self.activate_user(self.instructor)
+        self.global_staff = AdminFactory()
 
         def make_instructor(course):
-            CourseStaffRole(course.location).add_users(User.objects.get(email=self.instructor))
+            CourseStaffRole(course.location).add_users(self.global_staff, User.objects.get(email=self.instructor))
 
         make_instructor(self.graded_course)
 

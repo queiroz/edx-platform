@@ -6,8 +6,9 @@ from xmodule.modulestore.store_utilities import clone_course
 from xmodule.modulestore.django import modulestore
 from xmodule.contentstore.django import contentstore
 from xmodule.course_module import CourseDescriptor
-
-from auth.authz import _copy_course_group
+from student.roles import CourseInstructorRole, CourseStaffRole, GlobalStaff, CourseCreatorRole
+from student.models import get_user_by_username_or_email
+from django.core.exceptions import PermissionDenied
 
 
 #
@@ -19,16 +20,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         "Execute the command"
-        if len(args) != 2:
-            raise CommandError("clone requires two arguments: <source-course_id> <dest-course_id>")
+        if len(args) != 3:
+            raise CommandError("clone requires 3 arguments: <staff_user_id> <source-course_id> <dest-course_id>")
 
-        source_course_id = args[0]
-        dest_course_id = args[1]
+        staff_user = get_user_by_username_or_email(args[0])
+        # note: does not require them to authenticate themselves.
+        if not (GlobalStaff().has_user(staff_user) or CourseCreatorRole().has_user(staff_user)):
+            raise PermissionDenied
+        source_course_id = args[1]
+        dest_course_id = args[2]
 
         mstore = modulestore('direct')
         cstore = contentstore()
 
-        org, course_num, run = dest_course_id.split("/")
+        org, course_num, _ = dest_course_id.split("/")
         mstore.ignore_write_events_on_courses.append('{0}/{1}'.format(org, course_num))
 
         print("Cloning course {0} to {1}".format(source_course_id, dest_course_id))
@@ -41,4 +46,11 @@ class Command(BaseCommand):
             mstore.refresh_cached_metadata_inheritance_tree(dest_location)
 
             print("copying User permissions...")
-            _copy_course_group(source_location, dest_location)
+            CourseInstructorRole(dest_location).add_users(
+                staff_user,
+                *CourseInstructorRole(source_location).users_with_role()
+            )
+            CourseStaffRole(dest_location).add_users(
+                staff_user,
+                *CourseStaffRole(source_location).users_with_role()
+            )

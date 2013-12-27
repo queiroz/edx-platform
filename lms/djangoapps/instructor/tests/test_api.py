@@ -21,7 +21,7 @@ from courseware.tests.modulestore_config import TEST_DATA_MIXED_MODULESTORE
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from courseware.tests.helpers import LoginEnrollmentTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
-from student.tests.factories import UserFactory
+from student.tests.factories import UserFactory, AdminFactory
 from courseware.tests.factories import StaffFactory, InstructorFactory
 
 from student.models import CourseEnrollment, CourseEnrollmentAllowed
@@ -617,13 +617,13 @@ class TestInstructorAPILevelsAccess(ModuleStoreTestCase, LoginEnrollmentTestCase
     """
     def setUp(self):
         self.course = CourseFactory.create()
-        self.instructor = InstructorFactory(course=self.course.location)
+        self.instructor = InstructorFactory(course=self.course.location, course__admin=AdminFactory())
         self.client.login(username=self.instructor.username, password='test')
 
         self.other_instructor = UserFactory()
-        allow_access(self.course, self.other_instructor, 'instructor')
+        allow_access(self.instructor, self.course, self.other_instructor, 'instructor')
         self.other_staff = UserFactory()
-        allow_access(self.course, self.other_staff, 'staff')
+        allow_access(self.instructor, self.course, self.other_staff, 'staff')
         self.other_user = UserFactory()
 
     def test_modify_access_noparams(self):
@@ -788,8 +788,8 @@ class TestInstructorAPILevelsDataDump(ModuleStoreTestCase, LoginEnrollmentTestCa
             response = self.client.get(url, {})
         self.assertEqual(response['Content-Type'], 'text/csv')
         body = response.content.replace('\r', '')
-        self.assertTrue(body.startswith('"User ID","Anonymized user ID"\n"2","42"\n'))
-        self.assertTrue(body.endswith('"7","42"\n'))
+        self.assertTrue(body.startswith('"User ID","Anonymized user ID"\n"3","42"\n'))
+        self.assertTrue(body.endswith('"8","42"\n'))
 
     def test_list_grade_downloads(self):
         url = reverse('list_grade_downloads', kwargs={'course_id': self.course.id})
@@ -1332,7 +1332,7 @@ class TestInstructorAPIAnalyticsProxy(ModuleStoreTestCase, LoginEnrollmentTestCa
 
     def setUp(self):
         self.course = CourseFactory.create()
-        self.instructor = InstructorFactory(course=self.course.location)
+        self.instructor = InstructorFactory(course=self.course.location, course__admin=AdminFactory())
         self.client.login(username=self.instructor.username, password='test')
 
     @patch.object(instructor.views.api.requests, 'get')

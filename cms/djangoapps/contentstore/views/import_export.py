@@ -22,7 +22,6 @@ from django.views.decorators.http import require_http_methods, require_GET
 from django.utils.translation import ugettext as _
 
 from edxmako.shortcuts import render_to_response
-from auth.authz import create_all_course_groups
 
 from xmodule.modulestore.xml_importer import import_from_xml
 from xmodule.contentstore.django import contentstore
@@ -35,6 +34,7 @@ from .access import has_access
 
 from util.json_request import JsonResponse
 from extract_tar import safetar_extractall
+from student.roles import CourseInstructorRole, CourseStaffRole
 
 
 __all__ = ['import_handler', 'import_status_handler', 'export_handler']
@@ -225,13 +225,15 @@ def import_handler(request, tag=None, package_id=None, branch=None, version_guid
                         draft_store=modulestore()
                     )
 
-                    logging.debug('new course at {0}'.format(course_items[0].location))
+                    new_location = course_items[0].location
+                    logging.debug('new course at {0}'.format(new_location))
 
                     session_status[key] = 3
                     request.session.modified = True
 
-                    create_all_course_groups(request.user, course_items[0].location)
-                    logging.debug('created all course groups at {0}'.format(course_items[0].location))
+                    CourseInstructorRole(new_location).add_users(request.user, request.user)
+                    CourseStaffRole(new_location).add_users(request.user, request.user)
+                    logging.debug('created all course groups at {0}'.format(new_location))
 
                 # Send errors to client with stage at which error occured.
                 except Exception as exception:   # pylint: disable=W0703

@@ -20,8 +20,6 @@ from django.dispatch import Signal
 from contentstore.utils import get_modulestore
 from contentstore.tests.utils import parse_json, AjaxEnabledTestClient
 
-from auth.authz import add_user_to_creator_group
-
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from contentstore.tests.modulestore_config import TEST_MODULESTORE
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
@@ -57,6 +55,7 @@ import re
 
 from contentstore.utils import delete_course_and_groups
 from xmodule.modulestore.django import loc_mapper
+from student.roles import CourseCreatorRole
 
 TEST_DATA_CONTENTSTORE = copy.deepcopy(settings.CONTENTSTORE)
 TEST_DATA_CONTENTSTORE['DOC_STORE_CONFIG']['db'] = 'test_xcontent_%s' % uuid4().hex
@@ -1423,7 +1422,7 @@ class ContentStoreTest(ModuleStoreTestCase):
         test_course_data = self.assert_created_course(number_suffix=uuid4().hex)
         course_id = _get_course_id(test_course_data)
         self.assertTrue(are_permissions_roles_seeded(course_id))
-        delete_course_and_groups(course_id, commit=True)
+        delete_course_and_groups(self.user, course_id, commit=True)
         self.assertFalse(are_permissions_roles_seeded(course_id))
 
     def test_forum_unseeding_with_multiple_courses(self):
@@ -1433,7 +1432,7 @@ class ContentStoreTest(ModuleStoreTestCase):
 
         # unseed the forums for the first course
         course_id = _get_course_id(test_course_data)
-        delete_course_and_groups(course_id, commit=True)
+        delete_course_and_groups(self.user, course_id, commit=True)
         self.assertFalse(are_permissions_roles_seeded(course_id))
 
         second_course_id = _get_course_id(second_course_data)
@@ -1528,7 +1527,7 @@ class ContentStoreTest(ModuleStoreTestCase):
     def test_create_course_with_course_creator(self):
         """Test new course creation -- use course creator group"""
         with mock.patch.dict('django.conf.settings.FEATURES', {"ENABLE_CREATOR_GROUP": True}):
-            add_user_to_creator_group(self.user, self.user)
+            CourseCreatorRole().add_users(self.user, self.user)
             self.assert_created_course()
 
     def assert_course_permission_denied(self):

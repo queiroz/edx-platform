@@ -3,7 +3,7 @@ Tests for wiki permissions
 """
 
 from django.contrib.auth.models import Group
-from student.tests.factories import UserFactory
+from student.tests.factories import UserFactory, AdminFactory
 from xmodule.modulestore.tests.factories import CourseFactory
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 
@@ -24,8 +24,12 @@ class TestWikiAccessBase(ModuleStoreTestCase):
 
         self.wiki = get_or_create_root()
 
+        self.admin = AdminFactory()
         self.course_math101 = CourseFactory.create(org='org', number='math101', display_name='Course')
-        self.course_math101_staff = [InstructorFactory(course=self.course_math101.location), StaffFactory(course=self.course_math101.location)]
+        self.course_math101_staff = [
+            InstructorFactory(course=self.course_math101.location, course__admin=self.admin),
+            StaffFactory(course=self.course_math101.location, course__admin=self.admin)
+        ]
 
         wiki_math101 = self.create_urlpath(self.wiki, course_wiki_slug(self.course_math101))
         wiki_math101_page = self.create_urlpath(wiki_math101, 'Child')
@@ -43,10 +47,17 @@ class TestWikiAccess(TestWikiAccessBase):
     def setUp(self):
         super(TestWikiAccess, self).setUp()
 
+        self.admin = AdminFactory()
         self.course_310b = CourseFactory.create(org='org', number='310b', display_name='Course')
-        self.course_310b_staff = [InstructorFactory(course=self.course_310b.location), StaffFactory(course=self.course_310b.location)]
+        self.course_310b_staff = [
+            InstructorFactory(course=self.course_310b.location, course__admin=self.admin),
+            StaffFactory(course=self.course_310b.location, course__admin=self.admin)
+        ]
         self.course_310b_ = CourseFactory.create(org='org', number='310b_', display_name='Course')
-        self.course_310b__staff = [InstructorFactory(course=self.course_310b_.location), StaffFactory(course=self.course_310b_.location)]
+        self.course_310b__staff = [
+            InstructorFactory(course=self.course_310b_.location, course__admin=self.admin),
+            StaffFactory(course=self.course_310b_.location, course__admin=self.admin)
+        ]
 
         self.wiki_310b = self.create_urlpath(self.wiki, course_wiki_slug(self.course_310b))
         self.wiki_310b_ = self.create_urlpath(self.wiki, course_wiki_slug(self.course_310b_))
@@ -104,8 +115,12 @@ class TestWikiAccessForNumericalCourseNumber(TestWikiAccessBase):
     def setUp(self):
         super(TestWikiAccessForNumericalCourseNumber, self).setUp()
 
+        self.admin = AdminFactory()
         self.course_200 = CourseFactory.create(org='org', number='200', display_name='Course')
-        self.course_200_staff = [InstructorFactory(course=self.course_200.location), StaffFactory(course=self.course_200.location)]
+        self.course_200_staff = [
+            InstructorFactory(course=self.course_200.location, course__admin=self.admin),
+            StaffFactory(course=self.course_200.location, course__admin=self.admin)
+        ]
 
         wiki_200 = self.create_urlpath(self.wiki, course_wiki_slug(self.course_200))
         wiki_200_page = self.create_urlpath(wiki_200, 'Child')
@@ -124,9 +139,13 @@ class TestWikiAccessForOldFormatCourseStaffGroups(TestWikiAccessBase):
     def setUp(self):
         super(TestWikiAccessForOldFormatCourseStaffGroups, self).setUp()
 
+        self.admin = AdminFactory()
         self.course_math101c = CourseFactory.create(org='org', number='math101c', display_name='Course')
         Group.objects.get_or_create(name='instructor_math101c')
-        self.course_math101c_staff = [InstructorFactory(course=self.course_math101c.location), StaffFactory(course=self.course_math101c.location)]
+        self.course_math101c_staff = [
+            InstructorFactory(course=self.course_math101c.location, course__admin=self.admin),
+            StaffFactory(course=self.course_math101c.location, course__admin=self.admin)
+        ]
 
         wiki_math101c = self.create_urlpath(self.wiki, course_wiki_slug(self.course_math101c))
         wiki_math101c_page = self.create_urlpath(wiki_math101c, 'Child')

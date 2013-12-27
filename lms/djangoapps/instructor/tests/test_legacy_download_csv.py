@@ -20,6 +20,7 @@ from courseware.tests.modulestore_config import TEST_DATA_MIXED_MODULESTORE
 from student.roles import CourseStaffRole
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.django import modulestore, clear_existing_modulestores
+from student.tests.factories import AdminFactory
 
 
 @override_settings(MODULESTORE=TEST_DATA_MIXED_MODULESTORE)
@@ -41,11 +42,8 @@ class TestInstructorDashboardGradeDownloadCSV(ModuleStoreTestCase, LoginEnrollme
         self.activate_user(self.student)
         self.activate_user(self.instructor)
 
-        def make_instructor(course):
-            """ Create an instructor for the course. """
-            CourseStaffRole(course.location).add_users(User.objects.get(email=self.instructor))
-
-        make_instructor(self.toy)
+        CourseStaffRole(self.toy.location).add_users(
+            AdminFactory(), User.objects.get(email=self.instructor))
 
         self.logout()
         self.login(self.instructor, self.password)

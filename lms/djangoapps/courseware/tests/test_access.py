@@ -25,8 +25,8 @@ class AccessTestCase(TestCase):
         self.anonymous_user = AnonymousUserFactory()
         self.student = UserFactory()
         self.global_staff = UserFactory(is_staff=True)
-        self.course_staff = StaffFactory(course=self.course)
-        self.course_instructor = InstructorFactory(course=self.course)
+        self.course_staff = StaffFactory(course=self.course, course__admin=self.global_staff)
+        self.course_instructor = InstructorFactory(course=self.course, course__admin=self.global_staff)
 
     def test__has_access_to_location(self):
         self.assertFalse(access._has_access_to_location(None, self.course, 'staff', None))

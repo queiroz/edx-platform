@@ -11,7 +11,7 @@ from django.core.management import call_command
 from django.test.utils import override_settings
 
 from courseware.tests.tests import TEST_DATA_MONGO_MODULESTORE
-from student.tests.factories import CourseEnrollmentFactory, UserFactory
+from student.tests.factories import CourseEnrollmentFactory, UserFactory, AdminFactory
 from courseware.tests.factories import StaffFactory, InstructorFactory
 
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
@@ -50,10 +50,12 @@ class TestEmailSendFromDashboard(ModuleStoreTestCase):
     def setUp(self):
         self.course = CourseFactory.create()
 
-        self.instructor = InstructorFactory(course=self.course.location)
+        self.admin = AdminFactory()
+        self.instructor = InstructorFactory(course=self.course.location, course__admin=self.admin)
 
         # Create staff
-        self.staff = [StaffFactory(course=self.course.location) for _ in xrange(STAFF_COUNT)]
+        self.staff = [StaffFactory(course=self.course.location, course__admin=self.admin)
+                      for _ in xrange(STAFF_COUNT)]
 
         # Create students
         self.students = [UserFactory() for _ in xrange(STUDENT_COUNT)]

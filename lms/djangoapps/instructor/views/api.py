@@ -305,9 +305,9 @@ def modify_access(request, course_id):
         )
 
     if action == 'allow':
-        allow_access(course, user, rolename)
+        allow_access(request.user, course, user, rolename)
     elif action == 'revoke':
-        revoke_access(course, user, rolename)
+        revoke_access(request.user, course, user, rolename)
     else:
         return HttpResponseBadRequest("unrecognized action '{}'".format(action))
 

@@ -11,7 +11,7 @@ from student.tests.factories import CourseEnrollmentAllowedFactory  # Imported t
 from student.tests.factories import RegistrationFactory  # Imported to re-export
 # pylint: enable=unused-import
 
-from student.tests.factories import UserProfileFactory as StudentUserProfileFactory
+from student.tests.factories import UserProfileFactory as StudentUserProfileFactory, AdminFactory
 from courseware.models import StudentModule, XModuleUserStateSummaryField
 from courseware.models import XModuleStudentInfoField, XModuleStudentPrefsField
 from student.roles import (
@@ -41,10 +41,10 @@ class InstructorFactory(UserFactory):
     last_name = "Instructor"
 
     @factory.post_generation
-    def course(self, create, extracted, **kwargs):
+    def course(self, create, extracted, admin=None, **kwargs):
         if extracted is None:
             raise ValueError("Must specify a course location for a course instructor user")
-        CourseInstructorRole(extracted).add_users(self)
+        CourseInstructorRole(extracted).add_users(admin or AdminFactory(), self)
 
 
 class StaffFactory(UserFactory):
@@ -55,10 +55,10 @@ class StaffFactory(UserFactory):
     last_name = "Staff"
 
     @factory.post_generation
-    def course(self, create, extracted, **kwargs):
+    def course(self, create, extracted, admin=None, **kwargs):
         if extracted is None:
             raise ValueError("Must specify a course location for a course staff user")
-        CourseStaffRole(extracted).add_users(self)
+        CourseStaffRole(extracted).add_users(admin or AdminFactory(), self)
 
 
 class BetaTesterFactory(UserFactory):
@@ -69,10 +69,10 @@ class BetaTesterFactory(UserFactory):
     last_name = "Beta-Tester"
 
     @factory.post_generation
-    def course(self, create, extracted, **kwargs):
+    def course(self, create, extracted, admin=None, **kwargs):
         if extracted is None:
             raise ValueError("Must specify a course location for a beta-tester user")
-        CourseBetaTesterRole(extracted).add_users(self)
+        CourseBetaTesterRole(extracted).add_users(admin, self)
 
 
 class OrgStaffFactory(UserFactory):
@@ -83,10 +83,10 @@ class OrgStaffFactory(UserFactory):
     last_name = "Org-Staff"
 
     @factory.post_generation
-    def course(self, create, extracted, **kwargs):
+    def course(self, create, extracted, admin=None, **kwargs):
         if extracted is None:
             raise ValueError("Must specify a course location for an org-staff user")
-        OrgStaffRole(extracted).add_users(self)
+        OrgStaffRole(extracted).add_users(admin, self)
 
 
 class OrgInstructorFactory(UserFactory):
@@ -97,10 +97,10 @@ class OrgInstructorFactory(UserFactory):
     last_name = "Org-Instructor"
 
     @factory.post_generation
-    def course(self, create, extracted, **kwargs):
+    def course(self, create, extracted, admin=None, **kwargs):
         if extracted is None:
             raise ValueError("Must specify a course location for an org-instructor user")
-        OrgInstructorRole(extracted).add_users(self)
+        OrgInstructorRole(extracted).add_users(admin, self)
 
 
 class GlobalStaffFactory(UserFactory):
@@ -110,8 +110,8 @@ class GlobalStaffFactory(UserFactory):
     last_name = "GlobalStaff"
 
     @factory.post_generation
-    def set_staff(self, create, extracted, **kwargs):
-        GlobalStaff().add_users(self)
+    def set_staff(self, create, extracted, admin=None, **kwargs):
+        GlobalStaff().add_users(admin, self)
 
 
 class StudentModuleFactory(DjangoModelFactory):

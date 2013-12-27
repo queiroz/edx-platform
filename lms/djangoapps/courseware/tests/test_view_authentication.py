@@ -14,7 +14,7 @@ from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 
-from student.tests.factories import UserFactory, CourseEnrollmentFactory
+from student.tests.factories import UserFactory, CourseEnrollmentFactory, AdminFactory
 
 from courseware.tests.helpers import LoginEnrollmentTestCase, check_for_get_code
 from courseware.tests.modulestore_config import TEST_DATA_MIXED_MODULESTORE
@@ -128,17 +128,20 @@ class TestViewAuth(ModuleStoreTestCase, LoginEnrollmentTestCase):
             display_name='Welcome'
         )
 
+        superuser = AdminFactory()
+        self.global_staff_user = GlobalStaffFactory(set_staff__admin=superuser)
         self.unenrolled_user = UserFactory(last_name="Unenrolled")
 
         self.enrolled_user = UserFactory(last_name="Enrolled")
         CourseEnrollmentFactory(user=self.enrolled_user, course_id=self.course.id)
         CourseEnrollmentFactory(user=self.enrolled_user, course_id=self.test_course.id)
 
-        self.staff_user = StaffFactory(course=self.course.location)
-        self.instructor_user = InstructorFactory(course=self.course.location)
-        self.org_staff_user = OrgStaffFactory(course=self.course.location)
-        self.org_instructor_user = OrgInstructorFactory(course=self.course.location)
-        self.global_staff_user = GlobalStaffFactory()
+        self.staff_user = StaffFactory(course=self.course.location, course__admin=self.global_staff_user)
+        self.instructor_user = InstructorFactory(
+            course=self.course.location, course__admin=self.global_staff_user)
+        self.org_staff_user = OrgStaffFactory(course=self.course.location, course__admin=self.global_staff_user)
+        self.org_instructor_user = OrgInstructorFactory(
+            course=self.course.location, course__admin=self.global_staff_user)
 
     def test_redirection_unenrolled(self):
         """
@@ -369,7 +372,7 @@ class TestBetatesterAccess(ModuleStoreTestCase):
         self.content = ItemFactory(parent=self.course)
 
         self.normal_student = UserFactory()
-        self.beta_tester = BetaTesterFactory(course=self.course.location)
+        self.beta_tester = BetaTesterFactory(course=self.course.location, course__admin=AdminFactory())
 
     @patch.dict('courseware.access.settings.FEATURES', {'DISABLE_START_DATES': False})
     def test_course_beta_period(self):

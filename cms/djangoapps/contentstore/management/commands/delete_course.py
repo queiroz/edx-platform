@@ -4,6 +4,9 @@
 from django.core.management.base import BaseCommand, CommandError
 from .prompt import query_yes_no
 from contentstore.utils import delete_course_and_groups
+from student.models import get_user_by_username_or_email
+from student.roles import GlobalStaff
+from django.core.exceptions import PermissionDenied
 
 
 #
@@ -13,18 +16,22 @@ class Command(BaseCommand):
     help = '''Delete a MongoDB backed course'''
 
     def handle(self, *args, **options):
-        if len(args) != 1 and len(args) != 2:
-            raise CommandError("delete_course requires one or more arguments: <location> |commit|")
+        if 3 >= len(args) >= 2:
+            raise CommandError("delete_course requires 2 or 3 arguments: <staff_user_id> <location> |commit|")
 
-        course_id = args[0]
+        staff_user = get_user_by_username_or_email(args[0])
+        # note: does not require them to authenticate themselves.
+        if not GlobalStaff().has_user(staff_user):
+            raise PermissionDenied
+        course_id = args[1]
 
         commit = False
-        if len(args) == 2:
-            commit = args[1] == 'commit'
+        if len(args) == 3:
+            commit = args[2] == 'commit'
 
         if commit:
             print('Actually going to delete the course from DB....')
 
         if query_yes_no("Deleting course {0}. Confirm?".format(course_id), default="no"):
             if query_yes_no("Are you sure. This action cannot be undone!", default="no"):
-                delete_course_and_groups(course_id, commit)
+                delete_course_and_groups(staff_user, course_id, commit)

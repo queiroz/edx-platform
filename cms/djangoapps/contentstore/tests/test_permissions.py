@@ -1,6 +1,8 @@
 """
 Test CRUD for authorization.
 """
+import copy
+
 from django.test.utils import override_settings
 from django.contrib.auth.models import User, Group
 
@@ -9,9 +11,7 @@ from contentstore.tests.modulestore_config import TEST_MODULESTORE
 from contentstore.tests.utils import AjaxEnabledTestClient
 from xmodule.modulestore.django import loc_mapper
 from xmodule.modulestore import Location
-from auth.authz import INSTRUCTOR_ROLE_NAME, STAFF_ROLE_NAME
-from auth import authz
-import copy
+from student.roles import CourseRole, CourseInstructorRole, CourseStaffRole
 from contentstore.views.access import has_access
 
 
@@ -90,16 +90,18 @@ class TestCourseAccess(ModuleStoreTestCase):
         # first check the groupname for the course creator.
         self.assertTrue(
             self.user.groups.filter(
-                name="{}_{}".format(INSTRUCTOR_ROLE_NAME, self.course_locator.package_id)
+                name="{}_{}".format(CourseInstructorRole.ROLE, self.course_locator.package_id)
             ).exists(),
             "Didn't add creator as instructor."
         )
         users = copy.copy(self.users)
         user_by_role = {}
         # add the misc users to the course in different groups
-        for role in [INSTRUCTOR_ROLE_NAME, STAFF_ROLE_NAME]:
+        for role in [CourseInstructorRole.ROLE, CourseStaffRole.ROLE]:
             user_by_role[role] = []
-            groupnames, _ = authz.get_all_course_role_groupnames(self.course_locator, role)
+            # pylint: disable=protected-access
+            groupnames = CourseRole(role, self.course_locator)._group_names
+            self.assertGreater(len(groupnames), 1, "Only 0 or 1 groupname for {}".format(role))
             for groupname in groupnames:
                 group, _ = Group.objects.get_or_create(name=groupname)
                 user = users.pop()
@@ -110,7 +112,7 @@ class TestCourseAccess(ModuleStoreTestCase):
                 self.assertTrue(has_access(user, self.course_location), "{} does not have access".format(user))
 
         response = self.client.get_html(self.course_locator.url_reverse('course_team'))
-        for role in [INSTRUCTOR_ROLE_NAME, STAFF_ROLE_NAME]:
+        for role in [CourseInstructorRole.ROLE, CourseStaffRole.ROLE]:
             for user in user_by_role[role]:
                 self.assertContains(response, user.email)
         
@@ -119,9 +121,15 @@ class TestCourseAccess(ModuleStoreTestCase):
         copy_course_locator = loc_mapper().translate_location(
             copy_course_location.course_id, copy_course_location, False, True
         )
-        # pylint: disable=protected-access
-        authz._copy_course_group(self.course_locator, copy_course_locator)
-        for role in [INSTRUCTOR_ROLE_NAME, STAFF_ROLE_NAME]:
+        CourseInstructorRole(copy_course_locator).add_users(
+            self.user,
+            *CourseInstructorRole(self.course_locator).users_with_role()
+        )
+        CourseStaffRole(copy_course_locator).add_users(
+            self.user,
+            *CourseStaffRole(self.course_locator).users_with_role()
+        )
+        for role in [CourseInstructorRole.ROLE, CourseStaffRole.ROLE]:
             for user in user_by_role[role]:
                 self.assertTrue(has_access(user, copy_course_locator), "{} no copy access".format(user))
                 self.assertTrue(has_access(user, copy_course_location), "{} no copy access".format(user))

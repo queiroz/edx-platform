@@ -1080,7 +1080,7 @@ def add_user_to_role(request, username_or_email, role, group_title, event_name):
     except User.DoesNotExist:
         return u'<font color="red">Error: unknown username or email "{0}"</font>'.format(username_or_email)
 
-    role.add_users(user)
+    role.add_users(request.user, user)
 
     # Deal with historical event names
     if event_name in ('staff', 'beta-tester'):
@@ -1121,7 +1121,7 @@ def remove_user_from_role(request, username_or_email, role, group_title, event_n
     except User.DoesNotExist:
         return u'<font color="red">Error: unknown username or email "{0}"</font>'.format(username_or_email)
 
-    role.remove_users(user)
+    role.remove_users(request.user, user)
 
     # Deal with historical event names
     if event_name in ('staff', 'beta-tester'):

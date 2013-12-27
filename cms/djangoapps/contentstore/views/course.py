@@ -35,7 +35,6 @@ from models.settings.course_details import CourseDetails, CourseSettingsEncoder
 
 from models.settings.course_grading import CourseGradingModel
 from models.settings.course_metadata import CourseMetadata
-from auth.authz import create_all_course_groups, is_user_in_creator_group
 from util.json_request import expect_json
 
 from .access import has_access
@@ -52,6 +51,7 @@ from xmodule.html_module import AboutDescriptor
 from xmodule.modulestore.locator import BlockUsageLocator
 from course_creators.views import get_course_creator_status, add_user_with_status_unrequested
 from contentstore import utils
+from student.roles import CourseInstructorRole, CourseStaffRole, CourseCreatorRole
 
 __all__ = ['course_info_handler', 'course_handler', 'course_info_update_handler',
            'settings_handler',
@@ -207,7 +207,7 @@ def create_new_course(request):
 
     Returns the URL for the course overview page.
     """
-    if not is_user_in_creator_group(request.user):
+    if not CourseCreatorRole().has_user(request.user):
         raise PermissionDenied()
 
     org = request.json.get('org')
@@ -297,7 +297,8 @@ def create_new_course(request):
     initialize_course_tabs(new_course)
 
     new_location = loc_mapper().translate_location(new_course.location.course_id, new_course.location, False, True)
-    create_all_course_groups(request.user, new_location)
+    CourseInstructorRole(new_location).add_users(request.user, request.user)
+    CourseStaffRole(new_location).add_users(request.user, request.user)
 
     # seed the forums
     seed_permissions_roles(new_course.location.course_id)

@@ -31,6 +31,7 @@ from edxmako.shortcuts import render_to_string
 from student.models import unique_id_for_user
 
 from open_ended_grading import staff_grading_service, views, utils
+from student.tests.factories import AdminFactory
 
 log = logging.getLogger(__name__)
 
@@ -52,7 +53,8 @@ def make_instructor(course, user_email):
     """
     Makes a given user an instructor in a course.
     """
-    CourseStaffRole(course.location).add_users(User.objects.get(email=user_email))
+    CourseStaffRole(course.location).add_users(
+        AdminFactory(), User.objects.get(email=user_email))
 
 
 class StudentProblemListMockQuery(object):

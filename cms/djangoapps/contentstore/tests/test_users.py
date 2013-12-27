@@ -4,9 +4,9 @@ Tests for contentstore/views/user.py.
 import json
 from .utils import CourseTestCase
 from django.contrib.auth.models import User, Group
-from auth.authz import get_course_groupname_for_role
 from student.models import CourseEnrollment
 from xmodule.modulestore.django import loc_mapper
+from student.roles import CourseStaffRole, CourseInstructorRole
 
 
 class UsersTestCase(CourseTestCase):
@@ -29,8 +29,9 @@ class UsersTestCase(CourseTestCase):
         self.detail_url = self.location.url_reverse('course_team', self.ext_user.email)
         self.inactive_detail_url = self.location.url_reverse('course_team', self.inactive_user.email)
         self.invalid_detail_url = self.location.url_reverse('course_team', "nonexistent@user.com")
-        self.staff_groupname = get_course_groupname_for_role(self.course_locator, "staff")
-        self.inst_groupname = get_course_groupname_for_role(self.course_locator, "instructor")
+        # pylint: disable=protected-access
+        self.staff_groupname = CourseStaffRole(self.course_locator)._group_names[0]
+        self.inst_groupname = CourseInstructorRole(self.course_locator)._group_names[0]
 
     def test_index(self):
         resp = self.client.get(self.index_url, HTTP_ACCEPT='text/html')
