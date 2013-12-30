@@ -11,8 +11,6 @@ class UserFixture(WebAppFixture):
     Ensure that a user exists.
     """
 
-    # __metaclass__ = ABCMeta
-
     def __init__(
         self, username, email, password,
         enrollment_mode="honor", course=None, is_staff=False):

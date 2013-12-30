@@ -4,11 +4,11 @@ Helpful base test case classes for testing the LMS.
 
 from bok_choy.web_app_test import WebAppTest
 from .fixtures import UserFixture
-from edxapp_pages.lms.login import LoginPage
-from edxapp_pages.lms.dashboard import DashboardPage
+from edxapp_pages.studio.login import LoginPage
+from edxapp_pages.studio.index import DashboardPage
 from uuid import uuid4
 
-class LoggedInTest(WebAppTest):
+class StudioLoggedInTest(WebAppTest):
     """
     Tests that assume the user is logged in to a unique account
     and is registered for a course.
@@ -37,19 +37,15 @@ class LoggedInTest(WebAppTest):
 
     def setUp(self):
         """
-        Each test begins after registering for a course and logging in.
+        Each test begins after creating a user.
         """
-        super(LoggedInTest, self).setUp()
-        # self._login()
+        super(StudioLoggedInTest, self).setUp()
+        self._login()
 
     def _login(self):
         """
-        Log in as the test user and navigate to the dashboard,
-        where we should see the demo course.
+        Log in as the test user, which will navigate to the dashboard.
         """
-        self.ui.visit('lms.login')
-        self.ui['lms.login'].login(self.email, self.password)
-
-        if self.REGISTER_COURSE_TITLE is not None:
-            course_names = self.ui['lms.dashboard'].available_courses()
-            self.assertIn(self.REGISTER_COURSE_TITLE, course_names)
+        self.ui.visit('studio.login')
+        self.ui['studio.login'].login(self.email, self.password)
+        self.ui.wait_for_page('studio.dashboard')
