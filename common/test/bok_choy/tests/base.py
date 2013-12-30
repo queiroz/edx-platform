@@ -40,7 +40,7 @@ class LoggedInTest(WebAppTest):
         Each test begins after registering for a course and logging in.
         """
         super(LoggedInTest, self).setUp()
-        self._login()
+        # self._login()
 
     def _login(self):
         """
