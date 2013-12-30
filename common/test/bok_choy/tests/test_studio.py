@@ -3,8 +3,6 @@ E2E tests for Studio.
 """
 from unittest import skip
 from bok_choy.web_app_test import WebAppTest
-from credentials import TestCredentials
-from fixtures import UserFixture
 
 from edxapp_pages.studio.asset_index import AssetIndexPage
 from edxapp_pages.studio.checklists import ChecklistsPage
@@ -77,11 +75,13 @@ class LoggedInPagesTest(LoggedInTest):
         Rather than fire up the browser just to check each url,
         do them all sequentially in this testcase.
         """
-        pages = [
-            'uploads', 'checklists', 'import', 'updates', 'subsection', 'tabs',
-            'export', 'howitworks', 'dashboard', 'login', 'team', 'outline',
-            'settings', 'advanced', 'grading', 'signup', 'textbooks', 'unit'
-        ]
+        # pages = [
+        #     'uploads', 'checklists', 'import', 'updates', 'subsection', 'tabs',
+        #     'export', 'howitworks', 'dashboard', 'login', 'team', 'outline',
+        #     'settings', 'advanced', 'grading', 'signup', 'textbooks', 'unit'
+        # ]
 
-        for page in pages:
-            self.ui.visit('studio.{0}'.format(page))
+        # for page in pages:
+        #     self.ui.visit('studio.{0}'.format(page))
+
+        self.ui.visit('studio.dashboard')
