@@ -1,4 +1,4 @@
-<%! from django.utils.translation import gettext as _ %>
+<%! from django.utils.translation import ugettext as _ %>
 
 <%inherit file="main.html" />
 
@@ -76,7 +76,7 @@
         $submitButton.
           addClass('is-disabled').
           prop('disabled', true).
-          text("${_('Processing your account information …')}");
+          text("${_(u'Processing your account information …')}");
       }
     }
   </script>

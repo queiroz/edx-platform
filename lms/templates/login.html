@@ -3,7 +3,7 @@
 <%namespace name='static' file='static_content.html'/>
 
 <%! from django.core.urlresolvers import reverse %>
-<%! from django.utils.translation import gettext as _ %>
+<%! from django.utils.translation import ugettext as _ %>
 
 <%block name="title"><title>${_("Log into your {platform_name} Account").format(platform_name=settings.PLATFORM_NAME)}</title></%block>
 
@@ -89,7 +89,7 @@
         $submitButton.
           addClass('is-disabled').
           prop('disabled', true).
-          text("${_('Processing your account information …')}");
+          text("${_(u'Processing your account information …')}");
       }
     }
   </script>
