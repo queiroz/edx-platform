@@ -55,7 +55,7 @@ from xmodule.course_module import CourseDescriptor
 from pkg_resources import resource_string
 from xblock.core import String, Scope, List, XBlock
 from xblock.fields import Boolean, Float
-from courseware.access import has_access
+
 
 
 log = logging.getLogger(__name__)
@@ -349,13 +349,16 @@ class LTIModule(LTIFields, XModule):
             client_key=unicode(client_key),
             client_secret=unicode(client_secret)
         )
+        from courseware.access import has_access
         course = self.get_course()
         try:
             user = self.system.get_real_user(self.get_user_id())
         except TypeError:
             user = u''
 
-        if has_access(user, course, 'instructor'):
+        if self.system.user_is_masqueraded_as_student:
+            roles = u'Student'
+        elif has_access(user, course, 'instructor'):
             roles = u'Instructor'
         elif has_access(user, course, 'staff'):
             roles = u'Administrator'

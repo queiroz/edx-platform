@@ -1080,6 +1080,7 @@ class ModuleSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable=abs
         self.xmodule_instance = None
 
         self.get_real_user = get_real_user
+        self.user_is_masqueraded_as_student = getattr(user, 'masquerade_as_student', None)
 
     def get(self, attr):
         """	provide uniform access to attributes (like etree)."""
