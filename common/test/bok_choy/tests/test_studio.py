@@ -23,7 +23,7 @@ from edxapp_pages.studio.signup import SignupPage
 from edxapp_pages.studio.textbooks import TextbooksPage
 from edxapp_pages.studio.unit import UnitPage
 
-from .base import StudioLoggedInTest
+from .base import StudioLoggedInTest, StudioWithCourseTest
 
 
 @skip("not doing right now")
@@ -51,6 +51,7 @@ class LoggedOutTest(WebAppTest):
             self.ui.visit('studio.{0}'.format(page))
 
 
+@skip("not doing right now")
 class LoggedInPagesTest(StudioLoggedInTest):
     """
     Tests that verify the pages in Studio that you can get to when logged
@@ -84,3 +85,38 @@ class LoggedInPagesTest(StudioLoggedInTest):
         #     self.ui.visit('studio.{0}'.format(page))
 
         self.ui.visit('studio.dashboard')
+
+
+class WithCoursePagesTest(StudioWithCourseTest):
+    """
+    Tests that verify the pages in Studio that you can get to when logged
+    in and have a course.
+    """
+
+    @property
+    def page_object_classes(self):
+        return (set(super(WithCoursePagesTest, self).page_object_classes + [
+                AssetIndexPage, ChecklistsPage, ImportPage, CourseUpdatesPage,
+                SubsectionPage, StaticPagesPage, ExportPage, HowitworksPage,
+                DashboardPage, LoginPage, CourseTeamPage, CourseOutlinePage,
+                SettingsPage, AdvancedSettingsPage, GradingPage, SignupPage,
+                TextbooksPage, UnitPage
+            ]
+        ))
+
+    def test_page_existence(self):
+        """
+        Make sure that all the pages are accessible.
+        Rather than fire up the browser just to check each url,
+        do them all sequentially in this testcase.
+        """
+        # pages = [
+        #     'uploads', 'checklists', 'import', 'updates', 'subsection', 'tabs',
+        #     'export', 'howitworks', 'dashboard', 'login', 'team', 'outline',
+        #     'settings', 'advanced', 'grading', 'signup', 'textbooks', 'unit'
+        # ]
+
+        # for page in pages:
+        #     self.ui.visit('studio.{0}'.format(page))
+
+        self.ui.visit('studio.checklists')
