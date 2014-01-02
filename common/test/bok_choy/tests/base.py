@@ -14,25 +14,17 @@ import json
 
 class StudioLoggedInTest(WebAppTest):
     """
-    Tests that assume the user is logged in to a unique account
-    and is registered for a course.
+    Tests that assume the user is logged in to a unique account.
+    We use the auto_auth workflow for this.
     """
 
     @property
     def page_object_classes(self):
-        return [LoginPage, DashboardPage]
+        return []
 
     @property
     def fixtures(self):
-        """
-        Create a user account so we can log in.
-        The user account is automatically registered for a course.
-        """
-        self.username = 'test_{}'.format(uuid4().hex[:8])
-        self.email = '{0}@example.com'.format(self.username)
-        self.password = 'password'
-
-        return [UserFixture(self.username, self.email, self.password)]
+        pass
 
     def setUp(self):
         """
@@ -43,14 +35,27 @@ class StudioLoggedInTest(WebAppTest):
 
     def _login(self):
         """
-        Log in as the test user, which will navigate to the dashboard.
+        Use the auto-auth workflow to create the account and log in.
+        Grab the sessionid so future request will use the credentials.
         """
-        self.ui.visit('studio.login')
-        self.ui['studio.login'].login(self.email, self.password)
-        self.ui.wait_for_page('studio.dashboard')
+        self.username = 'test_{}'.format(uuid4().hex[:8])
+        self.email = '{0}@example.com'.format(self.username)
+        self.password = 'password'
+
+        method = 'get'
+        path = '/auto_auth?username={}&email={}&password={}'.format(
+            self.username, self.email, self.password
+        )
+        url = '{}{}'.format('http://localhost:8001', path)
+
+        resp = requests.request(method, url)
+
+        cookies = requests.utils.dict_from_cookiejar(resp.cookies)
+        self.sessionid = cookies.get('sessionid', '')
+        self.csrftoken = cookies.get('csrftoken', 'foo')
 
 
-class StudioWithCourseTest(WebAppTest):
+class StudioWithCourseTest(StudioLoggedInTest):
     """
     Tests that assume the user is logged in to a unique account
     and is registered for a course.
@@ -58,7 +63,7 @@ class StudioWithCourseTest(WebAppTest):
 
     @property
     def page_object_classes(self):
-        return [LoginPage, DashboardPage]
+        return [DashboardPage]
 
     @property
     def fixtures(self):
@@ -66,60 +71,37 @@ class StudioWithCourseTest(WebAppTest):
         Create a user account so we can log in.
         The user account is automatically registered for a course.
         """
-        self.username = 'test_{}'.format(uuid4().hex[:8])
-        self.email = '{0}@example.com'.format(self.username)
-        self.password = 'password'
-
-        return [UserFixture(self.username, self.email, self.password)]
+        pass
 
     def setUp(self):
         """
-        Each test begins after creating a user.
+        Each test begins after creating a course and navigating
+        to the dashboard page.
         """
         super(StudioWithCourseTest, self).setUp()
-        self._login()
         self._create_course()
-
-    def _login(self):
-        """
-        Log in as the test user, which will navigate to the dashboard.
-        """
-        self.ui.visit('studio.login')
-        self.ui['studio.login'].login(self.email, self.password)
-        self.ui.wait_for_page('studio.dashboard')
-        cookies = self.ui._browser.cookies.all()
-        self.csrftoken = ''
-        for cookie in cookies:
-            if cookie['name'] == 'csrftoken':
-                self.csrftoken = cookie['value']
-                break
 
     def _create_course(self):
         """
         Create a Course
         """
-        _csrf_token = 'foo'
-        # method = 'post'
-        # path = '/login_post'
-        # url = '{}{}'.format('http://localhost:8031', path)
-        # headers = {'content-type': 'application/json', 'X-CSRFToken': _csrf_token}
-        # data = {"email": self.email, "password": self.password, "honor_code": "true"}
-        # cookies = dict(csrftoken=_csrf_token)
-
-        # resp = requests.request(
-        #     method, url, data=json.dumps(data), headers=headers, cookies=cookies
-        # )
-
         method = 'post'
         path = '/course'
-        headers = {'content-type': 'application/json', 'X-CSRFToken': _csrf_token}
-        cookies = dict(csrftoken=_csrf_token)
+        headers = {
+            'content-type': 'application/json',
+            'X-CSRFToken': self.csrftoken,
+            'accept': 'application/json'
+        }
+        cookies = dict(csrftoken=self.csrftoken, sessionid=self.sessionid)
         course_num = '{}'.format(uuid4().hex[:4])
         data = {"org":"OrgX","number":course_num,"display_name":"Test Course","run":"2014"}
-        url = '{}{}'.format('http://localhost:8031', path)
+        url = '{}{}'.format('http://localhost:8001', path)
 
         from nose.tools import set_trace; set_trace()
+
         resp = requests.request(method, url, data=json.dumps(data), headers=headers, cookies=cookies)
+
+        self.ui.visit('studio.dashboard')
 
         print 'ok'
         print 'done'
