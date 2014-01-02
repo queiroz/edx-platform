@@ -6,6 +6,7 @@ from bok_choy.web_app_test import WebAppTest
 from .fixtures import UserFixture
 from edxapp_pages.studio.login import LoginPage
 from edxapp_pages.studio.index import DashboardPage
+from edxapp_pages.studio.auto_auth import AutoAuthPage
 from uuid import uuid4
 import requests
 import os
@@ -20,11 +21,7 @@ class StudioLoggedInTest(WebAppTest):
 
     @property
     def page_object_classes(self):
-        return []
-
-    @property
-    def fixtures(self):
-        pass
+        return [AutoAuthPage]
 
     def setUp(self):
         """
@@ -36,42 +33,30 @@ class StudioLoggedInTest(WebAppTest):
     def _login(self):
         """
         Use the auto-auth workflow to create the account and log in.
-        Grab the sessionid so future request will use the credentials.
+        Grab the csrftoken and sessionid so other browserless API requests
+        can use the credentials.
         """
-        self.username = 'test_{}'.format(uuid4().hex[:8])
-        self.email = '{0}@example.com'.format(self.username)
-        self.password = 'password'
+        self.ui.visit('studio.auto_auth')
 
-        method = 'get'
-        path = '/auto_auth?username={}&email={}&password={}'.format(
-            self.username, self.email, self.password
-        )
-        url = '{}{}'.format('http://localhost:8001', path)
+        self.sessionid = ''
+        self.csrftoken = ''
+        cookies = self.ui._browser.cookies.all()
+        for cookie in cookies:
+            if cookie.get('name') == 'sessionid':
+                self.sessionid = cookie.get('value')
+                break
 
-        resp = requests.request(method, url)
-
-        cookies = requests.utils.dict_from_cookiejar(resp.cookies)
-        self.sessionid = cookies.get('sessionid', '')
-        self.csrftoken = cookies.get('csrftoken', 'foo')
+        for cookie in cookies:
+            if cookie.get('name') == 'csrftoken':
+                self.csrftoken = cookie.get('value')
+                break
 
 
 class StudioWithCourseTest(StudioLoggedInTest):
     """
     Tests that assume the user is logged in to a unique account
-    and is registered for a course.
+    and has a sessionid and csrftoken.
     """
-
-    @property
-    def page_object_classes(self):
-        return [DashboardPage]
-
-    @property
-    def fixtures(self):
-        """
-        Create a user account so we can log in.
-        The user account is automatically registered for a course.
-        """
-        pass
 
     def setUp(self):
         """
@@ -95,14 +80,6 @@ class StudioWithCourseTest(StudioLoggedInTest):
         cookies = dict(csrftoken=self.csrftoken, sessionid=self.sessionid)
         course_num = '{}'.format(uuid4().hex[:4])
         data = {"org":"OrgX","number":course_num,"display_name":"Test Course","run":"2014"}
-        url = '{}{}'.format('http://localhost:8001', path)
-
-        from nose.tools import set_trace; set_trace()
+        url = '{}{}'.format('http://localhost:8031', path)
 
         resp = requests.request(method, url, data=json.dumps(data), headers=headers, cookies=cookies)
-
-        self.ui.visit('studio.dashboard')
-
-        print 'ok'
-        print 'done'
-
