@@ -349,13 +349,13 @@ class LTIModule(LTIFields, XModule):
             client_key=unicode(client_key),
             client_secret=unicode(client_secret)
         )
+
         from courseware.access import has_access
         course = self.get_course()
         try:
             user = self.system.get_real_user(self.get_user_id())
         except TypeError:
             user = u''
-
         if self.system.user_is_masqueraded_as_student:
             roles = u'Student'
         elif has_access(user, course, 'instructor'):

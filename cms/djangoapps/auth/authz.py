@@ -68,7 +68,8 @@ def get_all_course_role_groupnames(location, role, use_filter=True):
 def get_course_groupname_for_role(location, role):
     '''
     Get the preferred used groupname for this role, location combo.
-    Preference order: 
+
+    Preference order:
     * role_course_id (e.g., staff_myu.mycourse.myrun)
     * role_old_course_id (e.g., staff_myu/mycourse/myrun)
     * role_old_course (e.g., staff_mycourse)

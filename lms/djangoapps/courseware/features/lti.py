@@ -255,3 +255,11 @@ def click_grade(_step):
         iframe.find_by_name('submit-button').first.click()
         assert iframe.is_text_present('LTI consumer (edX) responded with XML content')
 
+@step('I switch to (*.)$')
+def switch_view(_step, view):
+    #TODO
+    link = world.browser.find_link_by_text(text)
+    assert len(link) > 0
+
+
+

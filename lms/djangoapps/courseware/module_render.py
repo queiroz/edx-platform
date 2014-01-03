@@ -526,6 +526,13 @@ def handle_xblock_callback(request, course_id, usage_id, handler, suffix=None):
     if not request.user.is_authenticated():
         raise PermissionDenied
 
+    user = User.objects.prefetch_related("groups").get(id=request.user.id)
+    request.user = user # keep just one instance of User
+    from courseware.courses import get_course_with_access
+    course = get_course_with_access(user, course_id, 'load', depth=2)
+    staff_access = has_access(user, course, 'staff')
+    setup_masquerade(request, staff_access)
+
     return _invoke_xblock_handler(request, course_id, usage_id, handler, suffix, request.user)
 
 
