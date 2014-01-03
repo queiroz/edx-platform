@@ -796,7 +796,7 @@ STATE_INITIAL = serialize_open_ended_instance_state("""
         {
             "child_created": false,
             "child_attempts": 0,
-            "stored_answer": null,
+            "stored_answer": "A stored answer.",
             "version": 1,
             "child_history": [],
             "max_score": 3,

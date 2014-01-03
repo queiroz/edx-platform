@@ -77,7 +77,7 @@ def calculate_task_statistics(students, course, location, task_number, write_to_
     students_with_saved_answers = []
     students_with_ungraded_submissions = []  # pylint: disable=invalid-name
     students_with_graded_submissions = []  # pylint: disable=invalid-name
-    students_with_invalid_state = []
+    students_with_no_state = []
 
     student_modules = StudentModule.objects.filter(module_state_key=location, student__in=students).order_by('student')
     print "Total student modules: {0}".format(student_modules.count())
@@ -92,13 +92,13 @@ def calculate_task_statistics(students, course, location, task_number, write_to_
         module = get_module_for_student(student, course, location)
         if module is None:
             print "  WARNING: No state found"
-            students_with_invalid_state.append(student)
+            students_with_no_state.append(student)
             continue
 
         latest_task = module.child_module.get_task_number(task_number)
         if latest_task is None:
-            print "  WARNING: No task state found"
-            students_with_invalid_state.append(student)
+            print "  No task state found"
+            students_with_no_state.append(student)
             continue
 
         task_state = latest_task.child_state
@@ -133,7 +133,7 @@ def calculate_task_statistics(students, course, location, task_number, write_to_
     print "Saved answers: {0}".format(len(students_with_saved_answers))
     print "Submitted answers: {0}".format(stats[OpenEndedChild.ASSESSING])
     print "Received grades: {0}".format(stats[OpenEndedChild.POST_ASSESSMENT] + stats[OpenEndedChild.DONE])
-    print "Invalid state: {0}".format(len(students_with_invalid_state))
+    print "No state: {0}".format(len(students_with_no_state))
     print "----------------------------------"
 
     if write_to_file:

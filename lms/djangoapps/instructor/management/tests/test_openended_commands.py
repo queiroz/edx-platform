@@ -39,26 +39,32 @@ class OpenEndedPostTest(ModuleStoreTestCase):
         self.student_on_accessing = UserFactory()
         self.student_on_post_assessment = UserFactory()
 
-        StudentModuleFactory.create(course_id=self.course_id,
-                                    module_state_key=self.problem_location,
-                                    student=self.student_on_initial,
-                                    grade=0,
-                                    max_grade=1,
-                                    state=STATE_INITIAL)
+        StudentModuleFactory.create(
+            course_id=self.course_id,
+            module_state_key=self.problem_location,
+            student=self.student_on_initial,
+            grade=0,
+            max_grade=1,
+            state=STATE_INITIAL
+        )
 
-        StudentModuleFactory.create(course_id=self.course_id,
-                                    module_state_key=self.problem_location,
-                                    student=self.student_on_accessing,
-                                    grade=0,
-                                    max_grade=1,
-                                    state=STATE_ACCESSING)
+        StudentModuleFactory.create(
+            course_id=self.course_id,
+            module_state_key=self.problem_location,
+            student=self.student_on_accessing,
+            grade=0,
+            max_grade=1,
+            state=STATE_ACCESSING
+        )
 
-        StudentModuleFactory.create(course_id=self.course_id,
-                                    module_state_key=self.problem_location,
-                                    student=self.student_on_post_assessment,
-                                    grade=0,
-                                    max_grade=1,
-                                    state=STATE_POST_ASSESSMENT)
+        StudentModuleFactory.create(
+            course_id=self.course_id,
+            module_state_key=self.problem_location,
+            student=self.student_on_post_assessment,
+            grade=0,
+            max_grade=1,
+            state=STATE_POST_ASSESSMENT
+        )
 
     def test_post_submission_for_student_on_initial(self):
         course = get_course_with_access(self.student_on_initial, self.course_id, 'load')
@@ -130,26 +136,32 @@ class OpenEndedStatsTest(ModuleStoreTestCase):
         self.student_on_accessing = UserFactory()
         self.student_on_post_assessment = UserFactory()
 
-        StudentModuleFactory.create(course_id=self.course_id,
-                                    module_state_key=self.problem_location,
-                                    student=self.student_on_initial,
-                                    grade=0,
-                                    max_grade=1,
-                                    state=STATE_INITIAL)
+        StudentModuleFactory.create(
+            course_id=self.course_id,
+            module_state_key=self.problem_location,
+            student=self.student_on_initial,
+            grade=0,
+            max_grade=1,
+            state=STATE_INITIAL
+        )
 
-        StudentModuleFactory.create(course_id=self.course_id,
-                                    module_state_key=self.problem_location,
-                                    student=self.student_on_accessing,
-                                    grade=0,
-                                    max_grade=1,
-                                    state=STATE_ACCESSING)
+        StudentModuleFactory.create(
+            course_id=self.course_id,
+            module_state_key=self.problem_location,
+            student=self.student_on_accessing,
+            grade=0,
+            max_grade=1,
+            state=STATE_ACCESSING
+        )
 
-        StudentModuleFactory.create(course_id=self.course_id,
-                                    module_state_key=self.problem_location,
-                                    student=self.student_on_post_assessment,
-                                    grade=0,
-                                    max_grade=1,
-                                    state=STATE_POST_ASSESSMENT)
+        StudentModuleFactory.create(
+            course_id=self.course_id,
+            module_state_key=self.problem_location,
+            student=self.student_on_post_assessment,
+            grade=0,
+            max_grade=1,
+            state=STATE_POST_ASSESSMENT
+        )
 
         self.students = [self.student_on_initial, self.student_on_accessing, self.student_on_post_assessment]
 
