@@ -15,7 +15,7 @@ var AssetsView = PagingView.extend({
         this.listenTo(collection, 'destroy', this.handleDestroy);
         this.registerSortableColumn('js-asset-name-col', gettext('Name'), 'displayname', 'asc');
         this.registerSortableColumn('js-asset-date-col', gettext('Date Added'), 'uploadDate', 'desc');
-        this.setDefaultSortColumn('js-asset-date-col');
+        this.setInitialSortColumn('js-asset-date-col');
     },
 
     render: function() {
